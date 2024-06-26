@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
+import { MyProSidebarProvider } from "./scenes/global/SidebarContext";
+
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
 // import Dashboard from "./scenes/dashboard";
@@ -18,16 +20,15 @@ import { ColorModeContext, useMode } from "./theme";
 
 function App() {
   const [theme, colorMode] = useMode();
-  const [isSidebar, setIsSidebar] = useState(true);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
+        <MyProSidebarProvider>
         <div className="app">
-          <Sidebar isSidebar={isSidebar} />
           <main className="content">
-            <Topbar setIsSidebar={setIsSidebar} />
+            <Topbar/>
             {/* <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/team" element={<Team />} />
@@ -43,6 +44,7 @@ function App() {
             </Routes> */}
           </main>
         </div>
+        </MyProSidebarProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>
   );

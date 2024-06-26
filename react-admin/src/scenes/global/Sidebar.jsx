@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Sidebar as ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
+
+import { useSidebarContext } from "./SidebarContext";
+
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
@@ -15,6 +18,11 @@ import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutl
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
+import SwitchRightOutlinedIcon from "@mui/icons-material/SwitchRightOutlined";
+import SwitchLeftOutlinedIcon from "@mui/icons-material/SwitchLeftOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+
+// { collapseSidebar, toggleSidebar, collapsed, broken }
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -27,9 +35,9 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
       }}
       onClick={() => setSelected(title)}
       icon={icon}
+      routerLink={<Link to={to} />}
     >
       <Typography>{title}</Typography>
-      <Link to={to} />
     </MenuItem>
   );
 };
@@ -37,42 +45,82 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 const Sidebar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const [selected, setSelected] = useState("Dashboard");
+  const [collapsed, setCollapsed] = useState(false);
+
+  const { broken, setBroken, toggled, setToggled, sidebarRTL, setSidebarRTL, sidebarImage } = useSidebarContext();
+  const handleBreakPointChange = (broken) => {
+    setBroken(broken)
+    console.log(`Sidebar is now ${broken ? 'broken' : 'not broken'}`);
+    // Perform other actions based on the state change
+  };
+
 
   return (
     <Box
       sx={{
-        "& .pro-sidebar-inner": {
-          background: `${colors.primary[400]} !important`,
+        position: "sticky",
+        display: "flex",
+        height: "100vh",
+        top: 0,
+        bottom: 0,
+        zIndex: 10000,
+        "& .sidebar": {
+          border: "none",
         },
-        "& .pro-icon-wrapper": {
+        "& .menu-icon": {
           backgroundColor: "transparent !important",
         },
-        "& .pro-inner-item": {
-          padding: "5px 35px 5px 20px !important",
+        "& .menu-item": {
+          // padding: "5px 35px 5px 20px !important",
+          backgroundColor: "transparent !important",
         },
-        "& .pro-inner-item:hover": {
-          color: "#868dfb !important",
+        "& .menu-anchor": {
+          color: "inherit !important",
+          backgroundColor: "transparent !important",
         },
-        "& .pro-menu-item.active": {
-          color: "#6870fa !important",
+        "& .menu-item:hover": {
+          color: `${colors.blueAccent[500]} !important`,
+          backgroundColor: "transparent !important",
+        },
+        "& .menu-item.active": {
+          color: `${colors.greenAccent[500]} !important`,
+          backgroundColor: "transparent !important",
         },
       }}
-      height={'100%'}
     >
-      <ProSidebar collapsed={isCollapsed}>
+      <ProSidebar
+        collapsed={collapsed}
+        toggled={toggled}
+        onBreakPoint={handleBreakPointChange}
+        breakPoint="md"
+        rtl={sidebarRTL}
+        backgroundColor={colors.primary[400]}
+        image={sidebarImage}
+      >
         <Menu iconShape="square">
           {/* LOGO AND MENU ICON */}
           <MenuItem
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            icon={isCollapsed ? <MenuOutlinedIcon /> : undefined}
+            icon={
+              collapsed ? (
+                <MenuOutlinedIcon onClick={() => setCollapsed(!collapsed)} />
+              ) : sidebarRTL ? (
+                <SwitchLeftOutlinedIcon
+                  onClick={() => setSidebarRTL(!sidebarRTL)}
+                />
+              ) : (
+                <SwitchRightOutlinedIcon
+                  onClick={() => setSidebarRTL(!sidebarRTL)}
+                />
+              )
+            }
             style={{
               margin: "10px 0 20px 0",
               color: colors.grey[100],
             }}
           >
-            {!isCollapsed && (
+            {!collapsed && (
               <Box
                 display="flex"
                 justifyContent="space-between"
@@ -82,16 +130,20 @@ const Sidebar = () => {
                 <Typography variant="h3" color={colors.grey[100]}>
                   ADMINIS
                 </Typography>
-                <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
-                  <MenuOutlinedIcon />
+                <IconButton
+                  onClick={
+                    broken ? () => setToggled(!toggled) : () => {console.log("setting collapsed"); setCollapsed(!collapsed)}
+                  }
+                >
+                   <CloseOutlinedIcon />
                 </IconButton>
               </Box>
             )}
           </MenuItem>
 
           {/* USER */}
-          {!isCollapsed && (
-            <Box mb="25px">
+          {!collapsed && (
+            <Box mb="15px">
               <Box display="flex" justifyContent="center" alignItems="center">
                 <img
                   alt="profile-user"
@@ -117,7 +169,7 @@ const Sidebar = () => {
             </Box>
           )}
 
-          <Box paddingLeft={isCollapsed ? undefined : "10%"}>
+          <Box paddingLeft={collapsed ? undefined : "10%"}>
             <Item
               title="Dashboard"
               to="/"
@@ -129,7 +181,7 @@ const Sidebar = () => {
             <Typography
               variant="h6"
               color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
+              sx={{ m: "15px 20px 5px 20px" }}
             >
               Data
             </Typography>
@@ -158,7 +210,7 @@ const Sidebar = () => {
             <Typography
               variant="h6"
               color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
+              sx={{ m: "15px 20px 5px 20px" }}
             >
               Pages
             </Typography>
@@ -187,7 +239,7 @@ const Sidebar = () => {
             <Typography
               variant="h6"
               color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
+              sx={{ m: "15px 20px 5px 20px" }}
             >
               Charts
             </Typography>
